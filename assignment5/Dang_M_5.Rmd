@@ -1,0 +1,102 @@
+---
+title: "Assignment 5"
+output: html_notebook
+---
+
+```{r}
+library("XML")
+
+# loads the XML document from the URL and stores it as a dataframe
+senators <- xmlToDataFrame("http://ds4100.weebly.com/uploads/8/6/5/9/8659576/senators.xml")
+print(senators)
+```
+
+```{r}
+senatorsFrom <- function(senatorsData, state) {
+  # Returns the names of the senators for the given state
+  # 
+  # Args:
+  #   senatorsData: The senators data to use
+  #   state: The state to get the names for
+  #   
+  # Returns:
+  #   A vector of the names of the senators
+  
+  # finds all the last names of the senators that match the given state
+  senatorNames <- senatorsData[senatorsData$state == state, ]$last_name
+  
+  return(senatorNames)
+}
+```
+
+```{r}
+senatorCountByParty <- function(senatorsData) {
+  # Returns the number of senators for each party
+  # 
+  # Args:
+  #   senatorsData: The senators data to use
+  # 
+  # Returns:
+  #   A dataframe with the numbers for each party
+  
+  # finds all of the unique parties
+  parties <- unique(senatorsData$party)
+  # initializes a senator count vector
+  senatorCount <- c()
+  
+  for (i in 1:length(parties)) {
+    senatorCount <- append(senatorCount, sum(senatorsData$party == parties[i]))
+  }
+  
+  # creates a dataframe with the counts for each party
+  countDf <- data.frame(Party = parties, Number..Senators = senatorCount, stringsAsFactors = FALSE)
+  
+  return(countDf)
+}
+```
+
+```{r}
+listSenators <- function(senatorsData) {
+  # Displays all of the senators sorted by last name, their party in parenthesis after their name,
+  # their state, and their phone number
+  # 
+  # Args:
+  #   senatorsData: The senators data to use
+  # 
+  # Returns:
+  # 
+  
+  # initializes the list of senators as a vector
+  senatorsDisplay <- c()
+  # sorts the senators data alphabetically by last name
+  sortedSenatorsData <- senatorsData[order(senatorsData$last_name),]
+  
+  for (i in 1:nrow(sortedSenatorsData)) {
+    # gets the current row
+    senator <- sortedSenatorsData[i,]
+    # formats the senator info into a single string
+    senatorInfoText <- paste(senator$first_name, " ", senator$last_name, " (", senator$party,
+                             ") - ", senator$state, " ", senator$phone, sep = "")
+    # adds the info text to the vector
+    senatorsDisplay <- append(senatorsDisplay, senatorInfoText)
+  }
+  
+  print(senatorsDisplay)
+}
+
+listSenators(senators)
+```
+
+```{r}
+# Test for Part 1
+print(nrow(senators) == 99)
+
+# Tests for Part 2
+print(length(senatorsFrom(senators, "MA")) == 2)
+print(senatorsFrom(senators, "MA")[2] == "Kerry")
+
+# Tests for Part 3
+counts <- senatorCountByParty(senators)
+print(nrow(counts) == 4)
+print(counts[counts$Party == "D",]$Number..Senators == 50)
+```
